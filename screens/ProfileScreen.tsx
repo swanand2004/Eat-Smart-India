@@ -219,6 +219,7 @@ type UserData = {
   spice_level?: string;
   health_conditions?: string[];
   current_diet_plan?: string;
+  updated_at?: string; // Add this line
 };
 
 const ProfileScreen = ({ navigation }: { navigation: any }) => {
@@ -321,14 +322,8 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
   try {
     setLoading(true);
 
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session) {
-      Alert.alert('Session Expired', 'Please login again');
-      return;
-    }
-
-    // Only include fields that exist in your onboarding_info table
-    const updateData = {
+    // 1. Prepare update data with proper typing
+    const updateData: Partial<UserData> = {
       goal: formData.goal,
       diet_type: formData.diet_type,
       cuisines: formData.cuisines || [],
@@ -340,27 +335,53 @@ const ProfileScreen = ({ navigation }: { navigation: any }) => {
       updated_at: new Date().toISOString()
     };
 
-    const { error } = await supabase
+    // 2. Update user preferences in onboarding_info
+    const { error: updateError } = await supabase
       .from('onboarding_info')
       .update(updateData)
       .eq('user_id', authUser.id);
 
-    if (error) throw error;
+    if (updateError) throw updateError;
 
-    // Update local state
-    const updatedData = { 
-      ...userData,
-      ...updateData
+    // 3. Call Edge Function to generate new meal plan
+    const { data: planData, error: planError } = await supabase.functions.invoke(
+      'generate_meal_plan',
+      {
+        body: {
+          user_id: authUser.id,
+          preferences: updateData,
+          forceRefresh: true // ✅ force new meal plan generation
+        }
+      }
+    );
+
+    if (planError) throw planError;
+
+    // 4. Create properly typed updated user data
+    const updatedData: UserData = {
+      id: authUser.id, // Ensure required field is set
+      ...userData, // Existing data
+      ...updateData, // Updated preferences
+      current_diet_plan: planData?.plan_name || 'Custom Plan' // From Edge Function
     };
 
-    setUserData(updatedData as UserData);
+    // 5. Update state and storage
+    setUserData(updatedData);
     await AsyncStorage.setItem(`@userProfile_${authUser.id}`, JSON.stringify(updatedData));
 
     setEditModalVisible(false);
-    Alert.alert('Success', 'Profile updated successfully');
+    Alert.alert('Success', 'Profile and meal plan updated successfully!');
   } catch (error) {
     console.error('Save error:', error);
-    Alert.alert('Error', 'Failed to save profile changes');
+    let errorMessage = 'Failed to save changes';
+    
+    if (error instanceof Error) {
+      if (error.message.includes('meal plan')) {
+        errorMessage = 'Profile saved but meal plan generation failed';
+      }
+    }
+    
+    Alert.alert('Error', errorMessage);
   } finally {
     setLoading(false);
   }

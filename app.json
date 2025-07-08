@@ -1,29 +1,65 @@
 {
   "expo": {
-    "name": "eatsmartindia",
-    "slug": "eatsmartindia",
+    "name": "EatSmart",
+    "slug": "eatsmart",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/splash-icon.png",
+     
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": ["**/*"],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.yourcompany.eatsmart",
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Allow EatSmart to access your photos for food tracking",
+        "NSCameraUsageDescription": "Allow EatSmart to use your camera for food photos"
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+       
+        "backgroundColor": "#FFFFFF"
       },
-      "edgeToEdgeEnabled": true
+      "package": "com.yourcompany.eatsmart",
+      "permissions": []
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+   
+    },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true,
+            "compileSdkVersion": 33,
+            "targetSdkVersion": 33,
+            "buildToolsVersion": "33.0.0"
+          },
+          "ios": {
+            "deploymentTarget": "15.1"
+          }
+        }
+      ],
+      [
+        "expo-font"
+      ]
+    ],
+    "extra": {
+      
+      },
+      "supabaseUrl": "https://mtkumkcrrapsumlsqher.supabase.co",
+      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10a3Vta2NycmFwc3VtbHNxaGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEyMDE0MTksImV4cCI6MjA2Njc3NzQxOX0.6FjpDBFqUZK4SR9vWq1mWxoZvf8vv8bllbTcigGLcoc"
     }
   }
-}
